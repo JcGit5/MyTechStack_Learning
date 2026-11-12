@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lazy evaluation and the DAG</title>
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../../index.html#spark">Tracker</a> / Spark / Execution / Lazy evaluation and the DAG</div>
+  <h1>Lazy evaluation and the DAG</h1>
+  <div class="panel">
+    <span>Status: <b id="status-badge" data-topic="spark/execution/lazy-evaluation-dag"></b></span><span class="muted">Last updated: 2026-11-11</span>
+  </div>
+
+  <h2>Key concept and sub-topics</h2>
+  <ul>
+    <li><b>Transformations are lazy.</b> <code>select</code>, <code>filter</code>, <code>join</code> and <code>groupBy</code> only add to a plan. Nothing runs yet.</li>
+    <li><b>Actions trigger execution.</b> <code>count</code>, <code>collect</code>, <code>show</code> and <code>write</code> make Spark plan and run a job.</li>
+    <li><b>Catalyst optimizes before running.</b> Unresolved logical plan, then analyzed, then optimized logical plan (predicate pushdown, column pruning), then physical plan.</li>
+    <li><b>Narrow vs wide dependencies.</b> Narrow ones (map, filter) stay inside a stage. Wide ones (groupBy, join) need a shuffle and start a new stage.</li>
+    <li><b>Job, stage, task.</b> One action creates a job, shuffle boundaries split it into stages, and each stage runs one task per partition.</li>
+    <li><b>Recomputation.</b> Each action replays the lineage from the source unless you <code>cache()</code> or <code>persist()</code> the result.</li>
+  </ul>
+
+  <h2>Architecture: from code to tasks</h2>
+  <svg viewBox="0 0 760 210" role="img" aria-label="Spark execution pipeline from user code to tasks on executors">
+    <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker></defs>
+    <rect class="box" x="10" y="70" width="100" height="56" rx="8"/><text x="60" y="95" text-anchor="middle">DataFrame</text><text x="60" y="113" text-anchor="middle">code</text>
+    <rect class="box" x="150" y="70" width="110" height="56" rx="8"/><text x="205" y="95" text-anchor="middle">Logical plan</text><text x="205" y="113" text-anchor="middle">(Catalyst)</text>
+    <rect class="box" x="300" y="70" width="110" height="56" rx="8"/><text x="355" y="95" text-anchor="middle">Physical</text><text x="355" y="113" text-anchor="middle">plan</text>
+    <rect class="box" x="450" y="70" width="110" height="56" rx="8"/><text x="505" y="95" text-anchor="middle">DAG of</text><text x="505" y="113" text-anchor="middle">stages</text>
+    <rect class="box" x="600" y="20" width="140" height="48" rx="8"/><text x="670" y="49" text-anchor="middle">Executor: tasks</text>
+    <rect class="box" x="600" y="80" width="140" height="48" rx="8"/><text x="670" y="109" text-anchor="middle">Executor: tasks</text>
+    <rect class="box" x="600" y="140" width="140" height="48" rx="8"/><text x="670" y="169" text-anchor="middle">Executor: tasks</text>
+    <path class="arrow" d="M110 98 H148" marker-end="url(#a)"/><path class="arrow" d="M260 98 H298" marker-end="url(#a)"/>
+    <path class="arrow" d="M410 98 H448" marker-end="url(#a)"/><path class="arrow" d="M560 98 L598 50" marker-end="url(#a)"/>
+    <path class="arrow" d="M560 98 H598" marker-end="url(#a)"/><path class="arrow" d="M560 98 L598 164" marker-end="url(#a)"/>
+    <text x="205" y="150" text-anchor="middle" class="muted">pushdown, pruning</text>
+    <text x="355" y="150" text-anchor="middle" class="muted">join strategy chosen</text>
+    <text x="505" y="150" text-anchor="middle" class="muted">split at shuffles</text>
+  </svg>
+
+  <h2>Example</h2>
+<pre>df = spark.read.parquet("orders")          # lazy
+big = df.filter("amount > 100")             # lazy, narrow
+agg = big.groupBy("country").count()        # lazy, wide: shuffle here
+agg.explain("formatted")                    # inspect the plan
+agg.write.mode("overwrite").parquet("out")  # ACTION: job starts</pre>
+
+  <div class="callout"><b>AI angle:</b> the plan is plain text, so you can paste <code>explain("formatted")</code> output into an LLM to get a first-pass tuning review. Verify any advice against the Spark UI before changing production jobs.</div>
+
+  <h2>Questions I discussed</h2>
+  <div class="log">
+    <div class="date">2026-11-11</div>
+    <div class="q">Q: Started the tracker. What is the first Spark concept to refresh?</div>
+    <p>Lazy evaluation and the DAG, since every tuning topic later (shuffles, skew, joins) builds on knowing where stage boundaries fall.</p>
+  </div>
+  <p class="muted">Add new entries above this line using the same <code>.log</code> block. Put anything reusable into Key points instead, so nothing is duplicated.</p>
+
+  <h2>Key summary</h2>
+  <p class="muted">To be written when this topic is marked done.</p>
+
+  <h2>Interview questions</h2>
+  <details><summary>Why does a groupBy create a new stage?</summary>Rows with the same key must land on the same partition, so data is redistributed across the network (a shuffle). Spark cannot pipeline across that boundary.</details>
+  <details><summary>If I call count() and then write() on the same DataFrame, how many times is the source read?</summary>Twice, unless it is cached. Each action replays the lineage.</details>
+  <details><summary>What is the difference between a transformation and an action?</summary>Transformations (<code>filter</code>, <code>select</code>, <code>groupBy</code>) lazily extend the plan and return a new DataFrame. Actions (<code>count</code>, <code>collect</code>, <code>write</code>) trigger execution and return a result or write output.</details>
+
+</div>
+<script src="../../assets/tracker.js"></script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

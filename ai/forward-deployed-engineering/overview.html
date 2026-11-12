@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Forward-deployed engineering</title>
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../../index.html#ai">Tracker</a> / AI / Forward-deployed engineering / Forward-deployed engineering</div>
+  <h1>Forward-deployed engineering</h1>
+  <div class="panel">
+    <span>Status: <b id="status-badge" data-topic="ai/forward-deployed-engineering/overview"></b></span>
+    <span class="muted">Last updated: 2026-11-11</span>
+  </div>
+
+  <h2>Key concept and sub-topics</h2>
+  <ul>
+    <li><b>What it is.</b> Engineers embedded with a customer, building working solutions on the customer's real data and systems, instead of shipping a generic product from a distance. The model was popularized by Palantir and is now common at AI companies.</li>
+    <li><b>Why it fits AI.</b> A model alone rarely solves a business problem. The value comes from wiring it to the customer's data, tools, permissions and workflows, and from evaluating it on their cases.</li>
+    <li><b>The role is a hybrid.</b> Part software engineer, part solutions architect, part consultant. You write production code, but you also scope the problem, manage stakeholders and decide what is worth building.</li>
+    <li><b>Typical work.</b> Data integration, retrieval and agent workflows, evaluation sets built from the customer's own examples, guardrails and permissions, deployment, and handoff.</li>
+    <li><b>Product feedback loop.</b> Patterns that recur across customers get generalized into the core product. That is how a forward-deployed team differs from pure consulting.</li>
+    <li><b>Key skills.</b> Fast prototyping, data engineering, reading a customer's messy environment, clear communication, and judging when a quick custom build should become a reusable product feature.</li>
+  </ul>
+
+  <h2>Architecture: the engagement loop</h2>
+  <svg viewBox="0 0 760 230" role="img" aria-label="Forward-deployed engineering loop between customer problem, prototype, evaluation, production and product feedback">
+    <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker></defs>
+    <rect class="box" x="10" y="80" width="120" height="56" rx="8"/><text x="70" y="104" text-anchor="middle">Customer</text><text x="70" y="122" text-anchor="middle">problem</text>
+    <rect class="box" x="170" y="80" width="120" height="56" rx="8"/><text x="230" y="104" text-anchor="middle">Embed and</text><text x="230" y="122" text-anchor="middle">scope</text>
+    <rect class="box ai" x="330" y="80" width="120" height="56" rx="8"/><text x="390" y="104" text-anchor="middle">Prototype with</text><text x="390" y="122" text-anchor="middle">AI on real data</text>
+    <rect class="box" x="490" y="80" width="120" height="56" rx="8"/><text x="550" y="104" text-anchor="middle">Evaluate on</text><text x="550" y="122" text-anchor="middle">their cases</text>
+    <rect class="box" x="640" y="80" width="110" height="56" rx="8"/><text x="695" y="104" text-anchor="middle">Production</text><text x="695" y="122" text-anchor="middle">and handoff</text>
+    <rect class="box" x="330" y="170" width="280" height="44" rx="8"/><text x="470" y="197" text-anchor="middle">Product team: generalize repeat patterns</text>
+    <path class="arrow" d="M130 108 H168" marker-end="url(#a)"/><path class="arrow" d="M290 108 H328" marker-end="url(#a)"/>
+    <path class="arrow" d="M450 108 H488" marker-end="url(#a)"/><path class="arrow" d="M610 108 H638" marker-end="url(#a)"/>
+    <path class="arrow" d="M550 138 V168" marker-end="url(#a)"/>
+    <path class="arrow" d="M400 170 C 340 150, 300 60, 250 40 C 200 30, 120 30, 70 78" marker-end="url(#a)"/>
+    <text x="190" y="30" class="muted">better product, faster next engagement</text>
+  </svg>
+
+  <h2>Forward-deployed vs related roles</h2>
+  <table>
+    <tr><th>Role</th><th>Main output</th><th>Relationship to customer</th></tr>
+    <tr><td>Forward-deployed engineer</td><td>Working code on the customer's systems</td><td>Embedded, often on site or in their tools</td></tr>
+    <tr><td>Solutions architect</td><td>Designs and guidance</td><td>Advisory, shorter touchpoints</td></tr>
+    <tr><td>Consultant</td><td>Recommendations and reports</td><td>Project-based, may not ship product code</td></tr>
+    <tr><td>Product engineer</td><td>Generalized product features</td><td>Indirect, via feedback</td></tr>
+  </table>
+
+  <div class="callout"><b>AI angle:</b> in agent projects the hard part is rarely the model call. It is access (what data and tools the agent may use), evaluation (what "correct" means for this customer) and trust (guardrails, audit, human review). A forward-deployed engineer spends most of their time there.</div>
+
+  <h2>Questions I discussed</h2>
+  <div class="log">
+    <div class="date">2026-11-11</div>
+    <div class="q">Q: What does "Forward engineer" under AI mean?</div>
+    <p>Confirmed as forward-deployed engineering: customer-embedded delivery of AI solutions. It links to Agents and Skills and tool use, which are the next AI concepts.</p>
+  </div>
+  <p class="muted">Add new entries above this line using the same <code>.log</code> block.</p>
+
+  <h2>Key summary</h2>
+  <p class="muted">To be written when this topic is marked done.</p>
+
+  <h2>Interview questions</h2>
+  <details><summary>How does forward-deployed engineering differ from consulting?</summary>The output is shipped, working software, and repeated patterns feed back into a reusable product instead of staying as one-off project work.</details>
+  <details><summary>A customer wants an agent over their internal data. What do you pin down first?</summary>The concrete task and success measure, then which data and tools the agent may access under what permissions, then a small evaluation set drawn from their real cases, before building anything large.</details>
+  <details><summary>When should a custom customer build become a product feature?</summary>When the same need repeats across customers, the solution can be generalized without customer-specific data or logic, and maintaining one shared version costs less than many custom ones.</details>
+
+</div>
+<script src="../../assets/tracker.js"></script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

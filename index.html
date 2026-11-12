@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Learning Tracker</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <h1>Learning Tracker</h1>
+  <div class="tabs" id="tabs"></div>
+  <div class="tools">
+    <input id="search" type="search" placeholder="Search topics" aria-label="Search topics">
+    <select id="status" aria-label="Filter by status">
+      <option value="all">All statuses</option>
+      <option value="todo">To do</option>
+      <option value="learning">Learning</option>
+      <option value="revise">Revise</option>
+      <option value="done">Done</option>
+    </select>
+    <span id="count" class="muted"></span>
+  </div>
+  <div id="table"></div>
+</div>
+<script src="assets/tracker.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

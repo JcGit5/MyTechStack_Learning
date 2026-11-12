@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Unity Catalog permissions</title>
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../../index.html#databricks">Tracker</a> / Databricks / Unity Catalog / Unity Catalog permissions</div>
+  <h1>Unity Catalog permissions</h1>
+  <div class="panel">
+    <span>Status: <b id="status-badge" data-topic="databricks/unity-catalog/permissions"></b></span><span class="muted">Last updated: 2026-11-11</span>
+  </div>
+
+  <h2>Key concept and sub-topics</h2>
+  <ul>
+    <li><b>Three-level namespace.</b> <code>catalog.schema.table</code>, all under one metastore per region.</li>
+    <li><b>Privileges inherit downward.</b> A grant on a catalog applies to every schema and table inside it, including future ones.</li>
+    <li><b>Reading a table needs three grants:</b> <code>USE CATALOG</code> on the catalog, <code>USE SCHEMA</code> on the schema, and <code>SELECT</code> on the table. Missing the first two is the most common "permission denied" surprise.</li>
+    <li><b>Grant to groups, not users.</b> Manage membership in your identity provider and keep grants stable.</li>
+    <li><b>Ownership.</b> The owner holds all privileges on an object and can grant them. Prefer a group as owner so access survives people leaving.</li>
+    <li><b>Fine-grained control.</b> Row filters and column masks attach SQL functions to a table so different groups see different rows or masked values. Newer attribute-based access control builds on tags; check the current docs for availability before relying on it.</li>
+    <li><b>Securables beyond tables:</b> views, volumes, functions, registered models, external locations and storage credentials.</li>
+  </ul>
+
+  <h2>Architecture: hierarchy and inheritance</h2>
+  <svg viewBox="0 0 760 270" role="img" aria-label="Unity Catalog hierarchy from metastore to tables with grants inheriting downward">
+    <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker></defs>
+    <rect class="box" x="290" y="10" width="180" height="40" rx="8"/><text x="380" y="35" text-anchor="middle">Metastore</text>
+    <rect class="box" x="290" y="75" width="180" height="40" rx="8"/><text x="380" y="100" text-anchor="middle">Catalog</text>
+    <rect class="box" x="290" y="140" width="180" height="40" rx="8"/><text x="380" y="165" text-anchor="middle">Schema</text>
+    <rect class="box" x="130" y="215" width="150" height="40" rx="8"/><text x="205" y="240" text-anchor="middle">Table / View</text>
+    <rect class="box" x="305" y="215" width="150" height="40" rx="8"/><text x="380" y="240" text-anchor="middle">Volume</text>
+    <rect class="box" x="480" y="215" width="150" height="40" rx="8"/><text x="555" y="240" text-anchor="middle">Function / Model</text>
+    <path class="arrow" d="M380 50 V73" marker-end="url(#a)"/><path class="arrow" d="M380 115 V138" marker-end="url(#a)"/>
+    <path class="arrow" d="M340 180 L215 213" marker-end="url(#a)"/><path class="arrow" d="M380 180 V213" marker-end="url(#a)"/><path class="arrow" d="M420 180 L545 213" marker-end="url(#a)"/>
+    <rect class="box ai" x="540" y="75" width="200" height="40" rx="8"/><text x="640" y="100" text-anchor="middle">GRANT USE CATALOG</text>
+    <rect class="box ai" x="540" y="140" width="200" height="40" rx="8"/><text x="640" y="165" text-anchor="middle">GRANT USE SCHEMA</text>
+    <text x="40" y="100">Inherits</text><text x="40" y="118">downward</text>
+    <path class="arrow" d="M538 95 H472" marker-end="url(#a)"/><path class="arrow" d="M538 160 H472" marker-end="url(#a)"/>
+  </svg>
+
+  <h2>Example</h2>
+<pre>GRANT USE CATALOG ON CATALOG sales TO `analysts`;
+GRANT USE SCHEMA  ON SCHEMA  sales.gold TO `analysts`;
+GRANT SELECT      ON TABLE   sales.gold.orders TO `analysts`;
+
+-- Column mask: only HR sees full SSN
+CREATE FUNCTION sales.gold.mask_ssn(ssn STRING)
+  RETURN CASE WHEN is_account_group_member('hr') THEN ssn ELSE '***-**-****' END;
+ALTER TABLE sales.gold.customers ALTER COLUMN ssn SET MASK sales.gold.mask_ssn;</pre>
+
+  <div class="callout"><b>AI angle:</b> the same grants govern registered models and functions that agents call as tools. An agent running as a service principal can then only reach data and tools that principal has been granted, which is the safest default for AI workloads.</div>
+
+  <h2>Questions I discussed</h2>
+  <div class="log">
+    <div class="date">2026-11-11</div>
+    <div class="q">Q: Wanted to cover permissions as part of Databricks key concepts.</div>
+    <p>Starting with the hierarchy and the three-grant rule, then fine-grained controls. Delta Sharing is the next concept, since it builds on the same catalog objects.</p>
+  </div>
+  <p class="muted">Add new entries above this line using the same <code>.log</code> block.</p>
+
+  <h2>Key summary</h2>
+  <p class="muted">To be written when this topic is marked done.</p>
+
+  <h2>Interview questions</h2>
+  <details><summary>A user has SELECT on a table but gets "permission denied". Why?</summary>Most likely they lack USE CATALOG or USE SCHEMA on the parents. SELECT alone is not enough.</details>
+  <details><summary>Row filter vs dynamic view: when would you choose each?</summary>Row filters and column masks attach to the table itself, so the policy follows it everywhere. Dynamic views are an older pattern where the policy lives in a separate view that users must query instead.</details>
+  <details><summary>How do you give a team read access to all current and future tables in a schema?</summary>Grant <code>USE CATALOG</code> on the catalog, <code>USE SCHEMA</code> on the schema and <code>SELECT</code> on the schema to a group. Privileges inherit downward, so new tables in that schema are covered automatically.</details>
+
+</div>
+<script src="../../assets/tracker.js"></script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

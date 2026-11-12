@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Catalog</title>
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs"><a href="../../index.html#databricks">Tracker</a> / Databricks / Unity Catalog / Catalog</div>
+  <h1>Catalog</h1>
+  <div class="panel">
+    <span>Status: <b id="status-badge" data-topic="databricks/unity-catalog/catalog"></b></span>
+    <span class="pill ai">AI</span>
+    <span class="muted">Last updated: 2026-11-11</span>
+  </div>
+
+  <h2>Key concept and sub-topics</h2>
+  <ul>
+    <li><b>What it is.</b> The top level of the three-level namespace <code>catalog.schema.table</code>. A catalog holds schemas, which hold tables, views, volumes, models and functions. It is registered in a metastore (one metastore per region in an account).</li>
+    <li><b>Purpose: a unit of isolation.</b> Each catalog should stand for one boundary of data access. Common mappings are environment (<code>dev</code>, <code>prod</code>), team or business domain.</li>
+    <li><b>Catalog types.</b> A <i>standard</i> catalog organizes your own data. A <i>foreign</i> catalog mirrors an external database for read-only queries (Lakehouse Federation). A <i>shared</i> catalog is created from a share another party provides (Delta Sharing, covered as its own topic later).</li>
+    <li><b>Catalogs you get automatically.</b>
+      <ul>
+        <li><code>hive_metastore</code>: objects from the legacy Hive metastore. Treat it as legacy; the docs mark the Hive metastore as deprecated.</li>
+        <li>Workspace catalog: created in new workspaces, usually named after the workspace. All users in that workspace can use it by default.</li>
+        <li><code>__databricks_internal</code>: internal state for features such as pipelines and dashboards. Do not query, change or delete it.</li>
+        <li>Also commonly seen: <code>system</code> (system tables) and <code>samples</code> (sample data). These were not on the docs pages I read, so verify.</li>
+      </ul></li>
+    <li><b>Default catalog.</b> Used when a query leaves the catalog name out. For automatically enabled workspaces it is the workspace catalog, and a workspace admin can change it.</li>
+    <li><b>Managed storage.</b> A catalog normally has its own managed storage location, where its managed tables and volumes are stored. Catalogs without one use the metastore-level location, and a schema can have its own location for finer isolation. The location must come from an external location. If the metastore has no storage location, you must give one when creating a catalog.</li>
+    <li><b>Workspace binding.</b> Limits which workspaces can see a catalog, for example production data only in the production workspace. With no binding, every workspace attached to the metastore can access the catalog. Bound workspaces get Read &amp; Write by default and can be set to Read Only.</li>
+    <li><b>What creation gives you.</b> Every new catalog gets two schemas, <code>default</code> and <code>information_schema</code>. By default all account users get <code>BROWSE</code>, which lets them discover metadata without reading data.</li>
+    <li><b>Privileges to create.</b> <code>CREATE CATALOG</code> on the metastore. Naming a managed location also needs <code>CREATE MANAGED STORAGE</code> on that external location. A foreign catalog needs <code>CREATE FOREIGN CATALOG</code> on the connection, or ownership of it. Compute needs a Unity Catalog-compliant access mode (SQL warehouses always qualify).</li>
+    <li><b>Access to anything inside.</b> Needs <code>USE CATALOG</code> on the catalog, so a catalog is the first gate. Grants then inherit downward. See <a href="permissions.html">Permissions</a>.</li>
+  </ul>
+<pre>CREATE CATALOG IF NOT EXISTS prod
+  MANAGED LOCATION 'abfss://uc@mystorage.dfs.core.windows.net/prod'  -- optional, path comes from an external location
+  COMMENT 'Production data';
+
+USE CATALOG prod;
+SHOW SCHEMAS;   -- default, information_schema, plus yours</pre>
+
+  <div class="callout"><b>AI angle:</b> registered models and functions that agents call live in schemas inside catalogs. Putting production AI assets in a catalog bound only to the production workspace is a simple way to keep experiments away from them.</div>
+
+  <h2>Questions I discussed</h2>
+  <div class="log">
+    <div class="date">2026-11-11</div>
+    <div class="q">Q: Start with catalog on Databricks.</div>
+    <p>A catalog is the top-level container and unit of isolation in Unity Catalog. Covered what it holds, its types, the catalogs you get automatically, managed storage, workspace binding and the privileges to create one.</p>
+  </div>
+  <p class="muted">Add new entries below using the same <code>.log</code> block.</p>
+
+  <h2>Key summary</h2>
+  <p class="muted">To be written when this topic is marked done.</p>
+
+  <h2>Interview questions</h2>
+  <details><summary>What is a catalog in Unity Catalog and how do teams usually organize them?</summary>It is the top level of <code>catalog.schema.table</code> and a unit of data isolation. Teams usually split by environment (dev, prod), team or business domain, so that access and storage can be managed per boundary.</details>
+  <details><summary>Standard vs foreign catalog?</summary>A standard catalog holds data managed in Unity Catalog. A foreign catalog is part of Lakehouse Federation: it mirrors an external database so you can query it read-only without copying the data.</details>
+  <details><summary>Where is a catalog's managed data stored, and what if no location is set?</summary>In the catalog's managed storage location, which must come from an external location. If none is set it falls back to the metastore-level location, and if the metastore has none either, you must specify one when creating the catalog. A schema can override it for finer isolation.</details>
+  <details><summary>How do you keep a production catalog out of a dev workspace?</summary>Bind the catalog to the production workspace only. Without a binding, every workspace attached to the metastore can access it.</details>
+  <details><summary>A user cannot see anything in a catalog. What do you check?</summary>Whether they have <code>USE CATALOG</code> (and <code>USE SCHEMA</code> plus the object privilege below it), whether the catalog is bound to the workspace they are using, and whether they only have <code>BROWSE</code>, which shows metadata but not data.</details>
+  <details><summary>Which privilege lets someone create a catalog?</summary><code>CREATE CATALOG</code> on the metastore. Specifying a managed location additionally needs <code>CREATE MANAGED STORAGE</code> on the external location.</details>
+
+  <p class="muted">Sources: Databricks docs, <a href="https://docs.databricks.com/aws/catalogs">Catalogs</a> and <a href="https://docs.databricks.com/aws/en/catalogs/create-catalog">Create catalogs</a>. Re-check these pages for current behavior before relying on details.</p>
+</div>
+<script src="../../assets/tracker.js"></script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

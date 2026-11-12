@@ -1,0 +1,9 @@
+# Claude desktop app download copies, not part of the site
+Claude outputs/
+
+# Leftover folder from an earlier layout (safe to delete)
+architecture/
+
+# OS files
+.DS_Store
+Thumbs.db
